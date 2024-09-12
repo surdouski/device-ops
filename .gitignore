@@ -1,0 +1,6 @@
+*__pycache__*
+.venv/
+device_ops/.secrets
+*.secrets
+*.config
+dist/

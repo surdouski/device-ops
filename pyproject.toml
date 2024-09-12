@@ -1,14 +1,21 @@
 [tool.poetry]
-name = "sensor-ops"
+name = "device-ops"
 version = "0.1.0"
 description = ""
 authors = ["surdouski <michael.surdouski@gmail.com>"]
 readme = "README.md"
-packages = [{include = "sensor_ops"}]
+packages = [{include = "device_ops"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+click = "^8.1.7"
+rich = "^13.8.0"
+python-dotenv = "^1.0.1"
+daemonize = "^2.5.0"
+sniffs = "0.6.2"
 
+[tool.poetry.scripts]
+dops = "device_ops.cli:dops"
 
 [build-system]
 requires = ["poetry-core"]
