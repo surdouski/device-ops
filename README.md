@@ -36,5 +36,6 @@ dops devices <device_id>
 # show a specific setting
 dops devices <device_id> <setting_id>
 # update the value of a setting (both --set and --type are required)
+# valid options for [--type] : --type=float,str,bytes,bytearray
 dops devices <device_id> <setting_id> [--set]/[-s] <value> [--type]/[-t] <_type>
 ```

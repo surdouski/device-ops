@@ -9,23 +9,27 @@ from dotenv import dotenv_values
 
 from sniffs import Sniffs
 
-console = Console()
 
+LOCATION_DEFAULT = "test"
+USER_DEFAULT = "myuser"
+PASSWORD_DEFAULT = "mypassword"
+HOST_DEFAULT = "foo.com"
+PORT_DEFAULT = 1337
 config = dotenv_values(".config")
-DEVICE_LOCATION = config["LOCATION"]
-
 secrets = dotenv_values(".secrets")
-_user = secrets["MQTT_SERVER_USER"]
-_password = secrets["MQTT_SERVER_PASS"]
-_host = secrets["MQTT_SERVER_IP"]
-_port = int(secrets["MQTT_SERVER_PORT"])
+_location = config.get("LOCATION") or LOCATION_DEFAULT
+_user = secrets.get("MQTT_SERVER_USER") or USER_DEFAULT
+_password = secrets.get("MQTT_SERVER_PASS") or PASSWORD_DEFAULT
+_host = secrets.get("MQTT_SERVER_IP") or HOST_DEFAULT
+_port = int(secrets.get("MQTT_SERVER_PORT") or PORT_DEFAULT)
 
 devices_dict = {}
 
+console = Console()
 sniffs = Sniffs()
 
 
-@sniffs.route("<location>:{" + DEVICE_LOCATION + "}/devices/<device_id>/<setting>")
+@sniffs.route("<location>:{" + _location + "}/devices/<device_id>/<setting>")
 def device_settings(device_id, setting, message):
     if isinstance(message, bytes):
         message = message.decode()
@@ -97,7 +101,7 @@ def devices(device_id, setting_id, new_value, new_value_type):
     if is_command_list_devices:
         if not devices_dict.keys():
             console.print(
-                f"No devices found at [{Clr.loc}]{DEVICE_LOCATION}[/{Clr.loc}]."
+                f"No devices found at [{Clr.loc}]{_location}[/{Clr.loc}]."
             )
             return
 
@@ -111,14 +115,14 @@ def devices(device_id, setting_id, new_value, new_value_type):
     device = devices_dict.get(device_id)
     if not device:
         console.print(
-            f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}] not found at [{Clr.loc}]{DEVICE_LOCATION}[/{Clr.loc}]."
+            f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}] not found at [{Clr.loc}]{_location}[/{Clr.loc}]."
         )
         return
 
     if is_command_get_device_setting or is_command_set_device_setting:
         if not device.get(setting_id):
             console.print(
-                f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}] and setting: [{Clr.set}]{setting_id}[/{Clr.set}] not found at [{Clr.loc}]{DEVICE_LOCATION}[/{Clr.loc}]."
+                f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}] and setting: [{Clr.set}]{setting_id}[/{Clr.set}] not found at [{Clr.loc}]{_location}[/{Clr.loc}]."
             )
             return
         # if --set or --type is provided, the other is expected
@@ -155,7 +159,7 @@ def devices(device_id, setting_id, new_value, new_value_type):
         elif new_value_type == "str":
             new_value = str(new_value)
 
-        topic = f"{DEVICE_LOCATION}/devices/{device_id}/{setting_id}"
+        topic = f"{_location}/devices/{device_id}/{setting_id}"
         client.publish(topic, new_value, retain=True)
 
 
