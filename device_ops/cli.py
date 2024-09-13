@@ -45,14 +45,16 @@ def device_settings(device_id, setting, message):
     devices_dict[device_id][setting] = message
 
 
-client = mqtt.Client(client_id="dops_client")
-client.username_pw_set(_user, password=_password)
-client.tls_set(cert_reqs=ssl.CERT_NONE)
-client.connect(_host, _port)
-sniffs.bind(client)
-client.loop_start()
-time.sleep(0.5)  # hopefully long enough? can't find a better way to do this atm
-client.loop_stop()
+def run_client() -> mqtt.Client:
+    client = mqtt.Client(client_id="dops_client")
+    client.username_pw_set(_user, password=_password)
+    client.tls_set(cert_reqs=ssl.CERT_NONE)
+    client.connect(_host, _port)
+    sniffs.bind(client)
+    client.loop_start()
+    time.sleep(0.5)  # hopefully long enough? can't find a better way to do this atm
+    client.loop_stop()  # don't need to keep client running: can still publish without looping
+    return client
 
 
 class Clr:
@@ -97,13 +99,23 @@ def devices(device_id, setting_id, new_value, new_value_type):
     dops devices <device_id> <setting_id>
     dops devices <device_id> <setting_id> [--set]/[-s] <value> [--type]/[-t] <_type>
     """
-
     is_command_list_devices = not device_id
     is_command_get_device = not setting_id
     is_command_set_device_setting = not not new_value
     is_command_get_device_setting = (
         not is_command_get_device and not is_command_set_device_setting
     )
+
+    # Early validations before running client
+    # if --set or --type is provided, the other is expected
+    if (new_value or new_value_type) and not (new_value and new_value_type):
+        console.print(
+            f"When providing a new setting value, must specify both --set and --type options."
+        )
+        return
+
+    # Call this from inside devices to delay running until options validation is done
+    client = run_client()
 
     if is_command_list_devices:
         if not devices_dict.keys():
@@ -130,12 +142,6 @@ def devices(device_id, setting_id, new_value, new_value_type):
         if not device.get(setting_id):
             console.print(
                 f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}] and setting: [{Clr.set}]{setting_id}[/{Clr.set}] not found at [{Clr.loc}]{_location}[/{Clr.loc}]."
-            )
-            return
-        # if --set or --type is provided, the other is expected
-        if (new_value or new_value_type) and not (new_value and new_value_type):
-            console.print(
-                f"When providing a new setting value, must specify both --set and --type options."
             )
             return
 
@@ -168,6 +174,17 @@ def devices(device_id, setting_id, new_value, new_value_type):
 
         topic = f"{_location}/devices/{device_id}/{setting_id}"
         client.publish(topic, new_value, retain=True)
+        client.loop_start()
+        time.sleep(0.5)
+        client.loop_stop()
+
+        table = Table(title=f"Device: [{Clr.dev}]{device_id}[/{Clr.dev}]")
+        table.add_column("Setting", style=Clr.set)
+        table.add_column("Value", style=Clr.val)
+
+        table.add_row(setting_id, device.get(setting_id))
+
+        console.print(table)
 
 
 if __name__ == "__main__":

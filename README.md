@@ -2,7 +2,6 @@
 
 Manage settings of devices through a command line client instead of over MQTT.
 
-
 ## Config files
 
 2 files are needed:
@@ -39,3 +38,5 @@ dops devices <device_id> <setting_id>
 # valid options for [--type] : --type=float,str,bytes,bytearray
 dops devices <device_id> <setting_id> [--set]/[-s] <value> [--type]/[-t] <_type>
 ```
+
+![example.png](example.png)
