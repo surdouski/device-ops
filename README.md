@@ -25,6 +25,13 @@ MQTT_SERVER_USER=my_user
 MQTT_SERVER_PASS=my_password
 ```
 
+## Installation
+
+```bash
+pip install device-ops
+```
+
+
 ## Usage
 
 ```bash
