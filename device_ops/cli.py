@@ -1,5 +1,6 @@
 import time
 import ssl
+import sys
 
 import click
 from rich.console import Console
@@ -9,23 +10,29 @@ from dotenv import dotenv_values
 
 from sniffs import Sniffs
 
+console = Console()
 
-LOCATION_DEFAULT = "test"
-USER_DEFAULT = "myuser"
-PASSWORD_DEFAULT = "mypassword"
-HOST_DEFAULT = "foo.com"
-PORT_DEFAULT = 1337
 config = dotenv_values(".config")
+_location = config.get("LOCATION")
+if not _location:
+    console.print("[bold red]Error: Must include a [bold orchid2].config[/bold orchid2] file with [orange3]LOCATION[/orange3][bright_white]=[/bright_white][italic magenta]location[/italic magenta].")
+    sys.exit(1)
+
 secrets = dotenv_values(".secrets")
-_location = config.get("LOCATION") or LOCATION_DEFAULT
-_user = secrets.get("MQTT_SERVER_USER") or USER_DEFAULT
-_password = secrets.get("MQTT_SERVER_PASS") or PASSWORD_DEFAULT
-_host = secrets.get("MQTT_SERVER_IP") or HOST_DEFAULT
-_port = int(secrets.get("MQTT_SERVER_PORT") or PORT_DEFAULT)
+_user = secrets.get("MQTT_SERVER_USER")
+_password = secrets.get("MQTT_SERVER_PASS")
+_host = secrets.get("MQTT_SERVER_IP")
+_port = int(secrets.get("MQTT_SERVER_PORT") or 0)
+if not (_user and _password and _host and _port):
+    console.print("[bold red]Error: Must include a [bold orchid2].secrets[/bold orchid2] file with the following items:[/bold red]\n"
+                  "[orange3]MQTT_SERVER_USER[/orange3][bright_white]=[/bright_white][italic magenta]some_user[/italic magenta].\n"
+                  "[orange3]MQTT_SERVER_PASS[/orange3][bright_white]=[/bright_white][italic magenta]hunter2[/italic magenta].\n"
+                  "[orange3]MQTT_SERVER_IP[/orange3][bright_white]=[/bright_white][italic magenta]foo.com[/italic magenta].\n"
+                  "[orange3]MQTT_SERVER_PORT[/orange3][bright_white]=[/bright_white][italic magenta]1337[/italic magenta].")
+    sys.exit(1)
 
 devices_dict = {}
 
-console = Console()
 sniffs = Sniffs()
 
 

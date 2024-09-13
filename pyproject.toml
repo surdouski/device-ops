@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "device-ops"
-version = "0.1.0"
-description = ""
+version = "0.1.1"
+description = "Admin tool for device operations over MQTT."
 authors = ["surdouski <michael.surdouski@gmail.com>"]
 readme = "README.md"
 packages = [{include = "device_ops"}]
