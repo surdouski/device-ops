@@ -4,3 +4,7 @@ device_ops/.secrets
 *.secrets
 *.config
 dist/
+
+# for manual testing, I add underscores to these files. lets not accidentally check them in...
+._config
+._secrets
